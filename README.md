@@ -1,5 +1,4 @@
-# Wilczynska_2019
-# scripts for ribosome profiling analysis present in Wilczynska et al Genome Biology 2019
+# scripts for ribosome profiling analysis 
 
 #useful input files
 
