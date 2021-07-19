@@ -70,7 +70,7 @@ def main(args):
 
             for transcript in f.references:
                 transcript_sequence=f.fetch(transcript)
-                ribo_counts, ribo_reads = RiboCount_functions.get_RPF_counts(pysamobj=b,transcript_name=transcript,transcript_length=len(transcript_sequence),read_lengths=read_lengths,read_offsets=read_offsets)
+                ribo_counts, ribo_reads = countingFunctions.get_RPF_counts(pysamobj=b,transcript_name=transcript,transcript_length=len(transcript_sequence),read_lengths=read_lengths,read_offsets=read_offsets)
                 if ribo_reads>1:
                     outputfile.write(str(transcript)+'\t'+str(transcript_sequence)+'\t'+' '.join(map(str,ribo_counts.values()))+'\t'+str(ribo_reads)+'\n')
                
