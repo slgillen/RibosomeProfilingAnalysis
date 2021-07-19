@@ -1,12 +1,14 @@
 # Wilczynska_2019
-scripts for ribosome profiling analysis present in Wilczynska et al Genome Biology 2019
+# scripts for ribosome profiling analysis present in Wilczynska et al Genome Biology 2019
 
 #useful input files
+
 #the most abundant transcript for each gene was used for RPF alignments as determined using the total RNA seq data -> these are the files for those used in the downstream analysis
 mostabundant_transcriptpergene.gtf
 mostabundant_transcriptpergene.fa
 
 #Scripts
+
 TotalRNA_alignments.sh - processing of fastq files for Total RNA seq data
 
 RPF_smallRNA_alignments.sh - processing of fastq files for ribosome protected fragments
