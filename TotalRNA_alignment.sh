@@ -3,7 +3,7 @@
 #workflow for total RNA alignment with use of most abundant transcript per gene
 
 
-inputdir='/inputfastqdirectory'
+inputdir='/inputdatadirectory'
 datadir='/processeddatadirectory'
 
 inputfiles="Total_con1,Total_con2, Total_con3"
@@ -25,7 +25,7 @@ done
 wait
 
 
-#remove adapters, quality trimming
+#remove adapters, quality trimming #Gs for adapter due to occasional NextSeq specific G issue
 for s in ${inputfiles//,/ }
 do
 	cutadapt --nextseq-trim=20 -m 30 -a GGGGGGGG -o $datadir/${s}.fastq.gz $datadir/${s}_cutadapt.fq & 
@@ -55,20 +55,17 @@ wait
 #remove UMI before alignment
 for s in ${inputfiles//,/ }
 do
-	cutadapt -u 12 -o $trim2dir/${barcode}_UMIremoved.fq.gz $dedupdir/${barcode}_dedup.fq & 
+  cutadapt -u 12 -o $dedupdir/${s}_UMIremoved.fq $dedupdir/${s}_dedup.fq & 
 done
 wait
 
 #alignment
-annotation=$inputdir/gencode.v28.annotation.mostabundantTranscript.gtf
-genome=$inputdir/GRCh38.primary_assembly.genome.fa
-
 aligndir=$aligndir/alignments
 mkdir $aligndir
 
 for s in ${inputfiles//,/ }
 do
-    STAR --readFilesIn $rRNAdir/non_rRNA_${s}.fq --runThreadN 28 --genomeDir $inputdir --outFilterMultimapNmax 5 --outFilterMismatchNmax 2 --outSAMprimaryFlag AllBestScore --alignEndsType EndToEnd --outSAMtype BAM Unsorted --outSAMunmapped Within KeepPairs --sjdbGTFfile ${annotation} --outFileNamePrefix $aligndir/${s} 
+    STAR --readFilesIn $dedupdir/${s}_UMIremoved.fq --runThreadN 28 --genomeDir $genomeindexdir --outFilterMultimapNmax 5 --outFilterMismatchNmax 2 --outSAMprimaryFlag AllBestScore --alignEndsType EndToEnd --outSAMtype BAM Unsorted --outSAMunmapped Within KeepPairs --sjdbGTFfile $annotationgtf --outFileNamePrefix $aligndir/${s} 
 done
 wait
 
@@ -91,13 +88,15 @@ wait
 outputdir=$datadir/counts
 mkdir $outputdir
 
-for s in ${inputfiles//,/ };do
-    featureCounts -a $annotation -s 1 -o $countsdir/fcounts_${s}.txt $aligndir/${s}_STARAligned_sorted.bam &
+for s in ${inputfiles//,/ }
+do
+    featureCounts -a $annotationgtf -s 1 -o $countsdir/fcounts_${s}.txt $aligndir/${s}_STARAligned_sorted.bam &
 done
 wait
 
 #format output table
-for s in ${inputfiles//,/ };do
+for s in ${inputfiles//,/ }
+do
     cut -f1,7-8 $countsdir/fcounts_${s}.txt > $countsdir/fcounts_${s}_matrix.txt
 done
 wait
