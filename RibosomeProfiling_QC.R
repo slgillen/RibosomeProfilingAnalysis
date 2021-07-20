@@ -3,43 +3,45 @@ library(seqinr)
 library(Biostrings)
 library(ggplot2)
 
-directory<-'/CountsOutput/'
-allsamplenames<-c('D1','D2','preD1','preD2')
+#other functions
+searchFeatures<-function(x,feature){
+    section<-strsplit(x,split='|',fixed=TRUE)[[1]][[grep(feature,strsplit(x,split='|',fixed=TRUE)[[1]])]]
+    return(section)
+  }
 
+
+###################### get data on frame of reads #####################
+#input info
+directory<-'/CountsOutput/'
+allsamplenames<-c('con1, con2, con3')
+lengths<-seq(27,31,1) #if have run the counts python script separately for multiple lengths
 
 #based on format of alignment with bowtie to gencode protein-coding transcriptome
 #get frame of read start positions in relation to translation start codon nts
 for(x in 1:length(allsamplenames)){
   samplename<-allsamplenames[x]
-  #lengths<-c('all')
-  lengths<-seq(24,37,1) #if have run the counts python script separately for multiple lengths
+
+  #read in data
   samples<-NULL
   for(i in 1:length(lengths)){
     samples[[i]]<-read.delim(paste0(directory,'RPFcountsTable_',samplename,'_',lengths[i],'.txt'),stringsAsFactors = FALSE,header=TRUE)
-    #samples[[i]]<-read.delim(paste0(directory,'RPFcountsTable_',samplename,'.txt'),stringsAsFactors = FALSE,header=TRUE)
-  }
-  
+  } 
   lapply(samples, function(x) nrow(x))
-  
-  searchFeatures<-function(x,feature){
-    section<-strsplit(x,split='|',fixed=TRUE)[[1]][[grep(feature,strsplit(x,split='|',fixed=TRUE)[[1]])]]
-    return(section)
-  }
-  
+
+  #sort input format       
   for(k in 1:length(samples)){
     s<-samples[[k]]
-    #print(sum(as.numeric(s$Total_RPF_counts)))
     s$ENST<-sapply(strsplit(as.character(s[,'Transcript_ID']), "|",fixed=TRUE), "[[", 1)
     s$ENSG<-sapply(strsplit(as.character(s[,'Transcript_ID']), "|",fixed=TRUE), "[[", 2)
     s$Gene_ID<-sapply(strsplit(as.character(s[,'Transcript_ID']), "|",fixed=TRUE), "[[", 6)
     s$length<-sapply(strsplit(as.character(s[,'Transcript_ID']), "|",fixed=TRUE), "[[", 7)
     
+    #get ends of each region (5'UTR, CDS and 3'UTR) position across the mRNA
     s$UTR5pos<-rep(NA,nrow(s))
     s$CDSpos<-rep(NA,nrow(s))
     s$UTR3pos<-rep(NA,nrow(s))
     for(i in 1:nrow(s)){
-      info<-s[i,1]
-      
+      info<-s[i,1]   
       if(grepl('CDS:',info)==TRUE){
         CDSp<-searchFeatures(info,'CDS:') 
         s[i,'CDSpos']<-strsplit(CDSp,split='-',fixed=TRUE)[[1]][2]
@@ -55,9 +57,9 @@ for(x in 1:length(allsamplenames)){
     }
     samples[[k]]<-s
   }
-  
   lapply(samples, function(x) nrow(x))
   
+  #check frame of CDS aligned reads       
   for(m in 1:length(samples)){
     s<-samples[[m]]
     s$UTR5pos<-as.numeric(s$UTR5pos)
@@ -70,7 +72,7 @@ for(x in 1:length(allsamplenames)){
     s$frame2<-numeric(nrow(s))
     for(n in 1:nrow(s)){
       region<-as.numeric(strsplit(s[n,'pos_RPF_counts'],' ')[[1]])
-      regionx<-region[c((s[n,'UTR5pos']-30):(s[n,'CDSpos']+30))] #only CDS reads will have periodicity so ignore UTR reads in frame counts
+      regionx<-region[c((s[n,'UTR5pos']-30):(s[n,'CDSpos']+30))] #just look at CDS reads
       s[n,'UTR5_sum']<-sum(region[1:s[n,'UTR5pos']])
       s[n,'CDS_sum']<-sum(region[(s[n,'UTR5pos']+1):(s[n,'CDSpos'])])
       s[n,'UTR3_sum']<-sum(region[(s[n,'CDSpos']+1):(s[n,'UTR3pos'])])
@@ -93,52 +95,39 @@ for(x in 1:length(allsamplenames)){
 
 
 
+####################### P-site offset plots ######################
 
-
-
-
-
-
-####################### P-site plots #############################
-
-
+#input info
 directory<-'/CountsOutput/'
-allsamplenames<-c('D1','D2','preD1','preD2')
-
+allsamplenames<-c('con1, con2, con3')
+lengths<-seq(27,31,1) #if have run the counts python script separately for multiple lengths
 
 #based on format of alignment with bowtie to gencode protein-coding transcriptome
 #get frame of read start positions in relation to translation start codon nts
 for(x in 1:length(allsamplenames)){
   samplename<-allsamplenames[x]
-  #lengths<-c('all')
-  lengths<-seq(24,37,1) #if have run the counts python script separately for multiple lengths
+
+  #read in data
   samples<-NULL
   for(i in 1:length(lengths)){
     samples[[i]]<-read.delim(paste0(directory,'RPFcountsTable_',samplename,'_',lengths[i],'.txt'),stringsAsFactors = FALSE,header=TRUE)
-    #samples[[i]]<-read.delim(paste0(directory,'RPFcountsTable_',samplename,'.txt'),stringsAsFactors = FALSE,header=TRUE)
-  }
-  
+  } 
   lapply(samples, function(x) nrow(x))
-  
-  searchFeatures<-function(x,feature){
-    section<-strsplit(x,split='|',fixed=TRUE)[[1]][[grep(feature,strsplit(x,split='|',fixed=TRUE)[[1]])]]
-    return(section)
-  }
-  
+
+  #sort input format       
   for(k in 1:length(samples)){
     s<-samples[[k]]
-    #print(sum(as.numeric(s$Total_RPF_counts)))
     s$ENST<-sapply(strsplit(as.character(s[,'Transcript_ID']), "|",fixed=TRUE), "[[", 1)
     s$ENSG<-sapply(strsplit(as.character(s[,'Transcript_ID']), "|",fixed=TRUE), "[[", 2)
     s$Gene_ID<-sapply(strsplit(as.character(s[,'Transcript_ID']), "|",fixed=TRUE), "[[", 6)
     s$length<-sapply(strsplit(as.character(s[,'Transcript_ID']), "|",fixed=TRUE), "[[", 7)
     
+    #get ends of each region (5'UTR, CDS and 3'UTR) position across the mRNA
     s$UTR5pos<-rep(NA,nrow(s))
     s$CDSpos<-rep(NA,nrow(s))
     s$UTR3pos<-rep(NA,nrow(s))
     for(i in 1:nrow(s)){
-      info<-s[i,1]
-      
+      info<-s[i,1]   
       if(grepl('CDS:',info)==TRUE){
         CDSp<-searchFeatures(info,'CDS:') 
         s[i,'CDSpos']<-strsplit(CDSp,split='-',fixed=TRUE)[[1]][2]
@@ -154,9 +143,7 @@ for(x in 1:length(allsamplenames)){
     }
     samples[[k]]<-s
   }
-  
   lapply(samples, function(x) nrow(x))
-  
   
   #reads around the AUG to determine offset length
   offset_tables<-NULL
@@ -169,9 +156,8 @@ for(x in 1:length(allsamplenames)){
     ss<-subset(ss,UTR5pos>32)
     print(nrow(ss))
     
+    #make plots of RPF read starts around AUG
     offsetplot<-data.frame(matrix(ncol=60,nrow=nrow(ss),0),stringsAsFactors = FALSE)
-    #rownames(offsetplot)<-ss$Gene_ID
-    
     for(n in 1:nrow(ss)){
       region<-as.numeric(strsplit(ss[n,'pos_RPF_counts'],' ')[[1]])
       regionx<-region[(ss[n,'UTR5pos']-29):(ss[n,'UTR5pos']+30)]
