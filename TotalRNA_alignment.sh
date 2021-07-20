@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#workflow for total RNA alignment with use of most abundant transcript per gene
+#library preparation done with NextFlex rapid directional qRNA-seq library prep kit
 
 
 inputdir='/inputdatadirectory'
@@ -55,7 +55,7 @@ wait
 #remove UMI before alignment
 for s in ${inputfiles//,/ }
 do
-  cutadapt -u 12 -o $dedupdir/${s}_UMIremoved.fq $dedupdir/${s}_dedup.fq & 
+  cutadapt -u 9 -o $dedupdir/${s}_UMIremoved.fq $dedupdir/${s}_dedup.fq & 
 done
 wait
 
