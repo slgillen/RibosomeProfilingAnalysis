@@ -3,7 +3,7 @@
 #library preparation for small RNA samples done with NextFlex small RNA seq kit
 
 #directories
-inputdir='/directoryoffastqfiles'
+inputdir='/directoryoffinputfiles'
 datadir='/directoryforoutputs'
 
 inputfiles='RPF_con1, RPF_con2, RPF_con3'
@@ -35,7 +35,7 @@ wait
 #read deduplication based on unique molecular indexes (UMI)
 for s in ${inputfiles//,/ }
 do
-  /home/sgillen/Programs/cd-hit-v4.6.6-2016-0711/cd-hit-auxtools/cd-hit-dup -i $datadir/${s}_fastp_cutadapt.fq -o $datadir/${s}_cdhitdup.fq -e 0
+  cd-hit-dup -i $datadir/${s}_fastp_cutadapt.fq -o $datadir/${s}_cdhitdup.fq -e 0
 done
 wait
 
@@ -77,7 +77,7 @@ aligndir=$datadir/transcriptome_alignments
 mkdir $aligndir
 for s in ${inputfiles//,/ }
 do
-  bowtie -S --threads 12 -q -n 2 -l 22 --best --norc --un $aligndir/not_aligned_${s}.fq --al $aligndir/RPF_aligned_${s}.fq $inputdir/gencode.v28.pc_most_abundant_transcript $rRNAdir/not_rRNA_${s}.fq $aligndir/RPFaligned_${s}.sam) 2> $aligndir/bowtie_alignment_stats_${s}.txt
+  bowtie -S --threads 12 -q -n 2 -l 22 --best --norc --un $aligndir/not_aligned_${s}.fq --al $aligndir/RPF_aligned_${s}.fq $inputdir/gencode_v28_proteincoding_mostabundanttranscriptHEK293.fa $rRNAdir/not_rRNA_${s}.fq $aligndir/RPFaligned_${s}.sam) 2> $aligndir/bowtie_alignment_stats_${s}.txt
 done
 wait
 
@@ -109,9 +109,10 @@ wait
 #custom python script (adapted from RiboCount) to get position of read starts along the transcript 
 #can be done for all length or specified read lengths 
 #offsets can be applied at this stage 
+#e.g. -l 28,29,30 -s 12,12,12 would only output data for read lengths 28,29,30 and would apply a P-site offset of 12
 
 pythonmoddir='/mnt/data/SGILLEN/py_user_defined_modules'
 for s in ${inputfiles//,/ }; do
-  python $pythonmoddir/Run_RiboCount.py -b $datadir/sorted_RPFaligned_${s}.bam -f $indir/gencode.v28.pc_transcripts.fa -o $datadir/CountsOutput -of RPFcountsTable_${s}.txt
+  python $pythonmoddir/countingScript.py -b $datadir/sorted_RPFaligned_${s}.bam -f $indir/gencode_v28_proteincoding_mostabundanttranscriptHEK293.fa -o $datadir/CountsOutput -of RPFcountsTable_${s}.txt
 done
 wait
