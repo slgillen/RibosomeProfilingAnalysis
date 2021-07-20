@@ -111,8 +111,7 @@ wait
 #offsets can be applied at this stage 
 #e.g. -l 28,29,30 -s 12,12,12 would only output data for read lengths 28,29,30 and would apply a P-site offset of 12
 
-pythonmoddir='/mnt/data/SGILLEN/py_user_defined_modules'
 for s in ${inputfiles//,/ }; do
-  python $pythonmoddir/countingScript.py -b $datadir/sorted_RPFaligned_${s}.bam -f $indir/gencode_v28_proteincoding_mostabundanttranscriptHEK293.fa -o $datadir/CountsOutput -of RPFcountsTable_${s}.txt
+  python countingScript.py -b $datadir/sorted_RPFaligned_${s}.bam -f $indir/gencode_v28_proteincoding_mostabundanttranscriptHEK293.fa -o $datadir/CountsOutput -of RPFcountsTable_${s}.txt
 done
 wait
