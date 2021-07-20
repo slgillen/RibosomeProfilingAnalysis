@@ -13,5 +13,5 @@ countingFunctions.py - python module for RPF counting
 
 RPFcountingforQCchecks.sh - runs the python counting scripts for each read length individually to provide input files for downstream frame and P-site offset analysis per read length
 
-RibosomeProfiling_QC.R - 
+RibosomeProfiling_QC.R - check the frame of RPF reads of different lengths and plot read starts around the AUG to determine appropriate P-site offset choice
 
